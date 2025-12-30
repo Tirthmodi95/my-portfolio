@@ -63,38 +63,31 @@ class LoginView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = authenticate(
-            request,
-            username=username,
-            password=password
-        )
+        user = authenticate(request, username=username, password=password)
 
         if user is None:
             return Response(
                 {"error": "Invalid username or password"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
         if not user.is_active:
             return Response(
                 {"error": "Account is disabled"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_403_FORBIDDEN
             )
 
-        login(request, user)
+        login(request, user)  # creates session
+
         ActivityLog.objects.create(
             username=user.username,
             action="Logged in"
         )
 
-        return Response(
-            {
-                "message": "Login successful",
-                "redirect": "admin" if user.is_staff else "dashboard"
-            },
-            status=status.HTTP_200_OK
-        )
-
+        return Response({
+            "message": "Login successful",
+            "role": "admin" if user.is_staff or user.is_superuser else "user"
+        }, status=status.HTTP_200_OK)
 
 # ==========================
 # Admin APIs

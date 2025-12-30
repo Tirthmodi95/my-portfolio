@@ -27,10 +27,9 @@ SECRET_KEY = 'django-insecure-3847u+gzb$o@b&pj@=i4n%yb!bf%ik+)v%!ayr0^f6pw0+*r^m
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'my-portfolio-h1tt.onrender.com',
-    '.onrender.com',
+    "my-portfolio-h1tt.onrender.com",
+    "localhost",
+    "127.0.0.1"
 ]
 # ALLOWED_HOSTS = ['*']  # Temporary for testing, change to specific later
 
@@ -122,14 +121,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://my-portfolio-h1tt.onrender.com',
-    'https://*.onrender.com',
+    "https://my-portfolio-h1tt.onrender.com"
 ]
 # Allow cookies in iframe (if needed)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
