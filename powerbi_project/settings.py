@@ -124,6 +124,11 @@ CSRF_TRUSTED_ORIGINS = [
     'https://my-portfolio-h1tt.onrender.com',
     'https://*.onrender.com',
 ]
+# Allow cookies in iframe (if needed)
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
