@@ -1055,7 +1055,7 @@ h2 {
   <button class="back-btn" id="backBtn" onclick="backToMenu()">Back</button>
 </div>
 
-<script>
+{% comment %} <script>
 // Toggle password visibility
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
@@ -1735,6 +1735,274 @@ window.onload = function() {
     document.getElementById("username").value = lastUser.username;
   }
 };
+</script> {% endcomment %}
+
+
+<script>
+/* =========================
+   CSRF TOKEN
+========================= */
+function getCSRFToken() {
+  const name = "csrftoken";
+  const cookies = document.cookie.split(";");
+  for (let cookie of cookies) {
+    cookie = cookie.trim();
+    if (cookie.startsWith(name + "=")) {
+      return cookie.substring(name.length + 1);
+    }
+  }
+  return "";
+}
+
+/* =========================
+   PASSWORD TOGGLE
+========================= */
+function togglePassword(inputId) {
+  const input = document.getElementById(inputId);
+  const btn = input.nextElementSibling;
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    input.type = "password";
+    btn.textContent = "👁️";
+  }
+}
+
+/* =========================
+   LOGIN
+========================= */
+function login() {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+  const errorEl = document.getElementById("loginError");
+
+  errorEl.style.display = "none";
+
+  if (!username || !password) {
+    errorEl.textContent = "Both fields are required";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  fetch("/api/login/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    credentials: "include",
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message) {
+      if (data.role === "admin") {
+        window.location.href = "/admin/";
+      } else {
+        window.location.href = "/dashboard/";
+      }
+    } else {
+      errorEl.textContent = data.error || "Invalid credentials";
+      errorEl.style.display = "block";
+    }
+  })
+  .catch(() => {
+    errorEl.textContent = "Server error. Try again.";
+    errorEl.style.display = "block";
+  });
+}
+
+/* =========================
+   SIGNUP
+========================= */
+function signup() {
+  const username = document.getElementById("newUsername").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const password = document.getElementById("newPassword").value;
+  const confirm = document.getElementById("confirmPassword").value;
+
+  const errorEl = document.getElementById("signupError");
+  const successEl = document.getElementById("signupSuccess");
+
+  errorEl.style.display = "none";
+  successEl.style.display = "none";
+
+  if (!username || !email || !mobile || !password || !confirm) {
+    errorEl.textContent = "All fields are required";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (!/^\d{10}$/.test(mobile)) {
+    errorEl.textContent = "Mobile must be 10 digits";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (password !== confirm) {
+    errorEl.textContent = "Passwords do not match";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  fetch("/api/signup/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: JSON.stringify({
+      username, email, mobile, password, confirm_password: confirm
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message) {
+      successEl.textContent = data.message;
+      successEl.style.display = "block";
+      setTimeout(() => showForm("signin"), 2000);
+    } else {
+      errorEl.textContent = Object.values(data)[0];
+      errorEl.style.display = "block";
+    }
+  })
+  .catch(() => {
+    errorEl.textContent = "Network error";
+    errorEl.style.display = "block";
+  });
+}
+
+/* =========================
+   PASSWORD RESET (USER)
+========================= */
+function resetPassword() {
+  const username = document.getElementById("resetUsername").value.trim();
+  const mobile = document.getElementById("resetMobile").value.trim();
+  const newPassword = document.getElementById("resetNewPassword").value;
+  const confirm = document.getElementById("resetConfirmPassword").value;
+
+  const errorEl = document.getElementById("resetError");
+  const successEl = document.getElementById("resetSuccess");
+
+  errorEl.style.display = "none";
+  successEl.style.display = "none";
+
+  if (!username || !mobile || !newPassword || !confirm) {
+    errorEl.textContent = "All fields are required";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (newPassword !== confirm) {
+    errorEl.textContent = "Passwords do not match";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  fetch("/api/reset-password/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: JSON.stringify({ username, mobile, new_password: newPassword })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message) {
+      successEl.textContent = data.message;
+      successEl.style.display = "block";
+      setTimeout(() => showForm("signin"), 2000);
+    } else {
+      errorEl.textContent = data.error;
+      errorEl.style.display = "block";
+    }
+  });
+}
+
+/* =========================
+   ADMIN PANEL
+========================= */
+function loadAdminPanel() {
+  fetch("/api/admin/users/", { credentials: "include" })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("adminUserCount").textContent = data.total;
+      const tbody = document.getElementById("usersTableBody");
+      tbody.innerHTML = "";
+
+      data.users.forEach(user => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.email}</td>
+          <td>${user.mobile || "N/A"}</td>
+          <td>${user.signup_date}</td>
+          <td>
+            <button onclick="adminResetPassword('${user.username}')">Reset</button>
+            <button onclick="deleteUser('${user.username}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+}
+
+function adminResetPassword(username) {
+  const newPass = prompt(`Enter new password for ${username}`);
+  if (!newPass) return;
+
+  fetch("/api/admin/reset-password/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: JSON.stringify({ username, new_password: newPass })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.message || data.error));
+}
+
+function deleteUser(username) {
+  if (!confirm("Delete user?")) return;
+
+  fetch("/api/admin/delete-user/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: JSON.stringify({ username })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message || data.error);
+    loadAdminPanel();
+  });
+}
+
+/* =========================
+   FORM SWITCH
+========================= */
+function showForm(id) {
+  document.querySelectorAll(".form").forEach(f => f.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* =========================
+   LOGOUT
+========================= */
+function logout() {
+  fetch("/api/logout/", {
+    method: "POST",
+    headers: { "X-CSRFToken": getCSRFToken() },
+    credentials: "include"
+  })
+  .then(() => window.location.href = "/");
+}
 </script>
 
 </body>

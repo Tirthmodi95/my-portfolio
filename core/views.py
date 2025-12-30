@@ -1,10 +1,9 @@
 from django.shortcuts import render
-from django.contrib.auth import authenticate, login
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,19 +15,20 @@ from .serializers import SignupSerializer
 # ==========================
 # Frontend Page
 # ==========================
+@ensure_csrf_cookie
 def home(request):
-    return render(request, 'index.html')
+    return render(request, "index.html")
 
 
 # ==========================
 # Signup API
 # ==========================
-@method_decorator(csrf_exempt, name='dispatch')
 class SignupView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
+
         if serializer.is_valid():
             user = serializer.save()
             ActivityLog.objects.create(
@@ -36,26 +36,22 @@ class SignupView(APIView):
                 action="Signed up"
             )
             return Response(
-                {"message": "Account created successfully!"},
+                {"message": "Account created successfully"},
                 status=status.HTTP_201_CREATED
             )
 
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ==========================
 # Login API
 # ==========================
-@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
+        username = request.data.get("username")
+        password = request.data.get("password")
 
         if not username or not password:
             return Response(
@@ -77,70 +73,87 @@ class LoginView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        login(request, user)  # creates session
+        login(request, user)
 
         ActivityLog.objects.create(
             username=user.username,
             action="Logged in"
         )
 
-        return Response({
-            "message": "Login successful",
-            "role": "admin" if user.is_staff or user.is_superuser else "user"
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "message": "Login successful",
+                "role": "admin" if user.is_staff or user.is_superuser else "user"
+            },
+            status=status.HTTP_200_OK
+        )
+
 
 # ==========================
-# Admin APIs
+# Logout API
 # ==========================
-@api_view(['GET'])
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    ActivityLog.objects.create(
+        username=request.user.username,
+        action="Logged out"
+    )
+    logout(request)
+    return Response({"message": "Logged out successfully"})
+
+
+# ==========================
+# Admin: Get Users
+# ==========================
+@api_view(["GET"])
 @permission_classes([IsAdminUser])
 def get_users(request):
-    users = CustomUser.objects.all().values(
-        'username',
-        'email',
-        'mobile',
-        'signup_date'
-    )
+    users = CustomUser.objects.all()
 
-    users_list = []
+    data = []
     for user in users:
-        users_list.append({
-            "username": user["username"],
-            "email": user["email"],
-            "mobile": user["mobile"],
-            "signup_date": user["signup_date"].strftime('%d %b %Y at %I:%M %p')
-            if user["signup_date"] else "N/A"
+        data.append({
+            "username": user.username,
+            "email": user.email,
+            "mobile": user.mobile,
+            "signup_date": user.signup_date.strftime("%d %b %Y at %I:%M %p")
+            if user.signup_date else "N/A"
         })
 
-    return Response(
-        {
-            "users": users_list,
-            "total": len(users_list)
-        }
-    )
+    return Response({
+        "users": data,
+        "total": len(data)
+    })
 
 
-@api_view(['GET'])
+# ==========================
+# Admin: Activity Logs
+# ==========================
+@api_view(["GET"])
 @permission_classes([IsAdminUser])
 def get_activity_logs(request):
-    logs = ActivityLog.objects.all().order_by('-timestamp')
+    logs = ActivityLog.objects.all().order_by("-timestamp")
 
-    logs_list = []
+    data = []
     for log in logs:
-        logs_list.append({
+        data.append({
             "username": log.username,
             "action": log.action,
-            "timestamp": log.timestamp.strftime('%d %b %Y at %I:%M %p')
+            "timestamp": log.timestamp.strftime("%d %b %Y at %I:%M %p")
         })
 
-    return Response({"logs": logs_list})
+    return Response({"logs": data})
 
 
-@api_view(['POST'])
+# ==========================
+# Admin: Reset User Password
+# ==========================
+@api_view(["POST"])
 @permission_classes([IsAdminUser])
 def reset_user_password(request):
-    username = request.data.get('username')
-    new_password = request.data.get('new_password')
+    username = request.data.get("username")
+    new_password = request.data.get("new_password")
 
     if not username or not new_password:
         return Response(
@@ -159,9 +172,40 @@ def reset_user_password(request):
         )
 
         return Response(
-            {"message": f"Password reset successfully for {username}"},
-            status=status.HTTP_200_OK
+            {"message": f"Password reset successfully for {username}"}
         )
+
+    except CustomUser.DoesNotExist:
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+
+# ==========================
+# Admin: Delete User
+# ==========================
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def delete_user(request):
+    username = request.data.get("username")
+
+    if not username:
+        return Response(
+            {"error": "Username required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user = CustomUser.objects.get(username=username)
+        user.delete()
+
+        ActivityLog.objects.create(
+            username="Admin",
+            action=f"Deleted user {username}"
+        )
+
+        return Response({"message": f"User {username} deleted successfully"})
 
     except CustomUser.DoesNotExist:
         return Response(
