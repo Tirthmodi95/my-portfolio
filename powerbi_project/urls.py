@@ -1,9 +1,5 @@
 from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-
-# Import your views from the core app
+from django.urls import path
 from core.views import (
     home,
     SignupView,
@@ -15,13 +11,16 @@ from core.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Frontend
     path('', home, name='home'),
+
+    # Auth APIs
     path('api/signup/', SignupView.as_view(), name='api_signup'),
     path('api/login/', LoginView.as_view(), name='api_login'),
+
+    # Admin APIs
     path('api/admin/users/', get_users, name='api_admin_users'),
     path('api/admin/logs/', get_activity_logs, name='api_admin_logs'),
     path('api/admin/reset-password/', reset_user_password, name='api_reset_password'),
 ]
-
-# Serve static files in both development and production
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
