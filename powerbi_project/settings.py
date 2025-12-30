@@ -26,13 +26,13 @@ SECRET_KEY = 'django-insecure-3847u+gzb$o@b&pj@=i4n%yb!bf%ik+)v%!ayr0^f6pw0+*r^m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.onrender.com',  # Allows all Render subdomains
-    'my-portfolio-h1tt.onrender.com',  # Your exact URL
-]
-
+# ALLOWED_HOSTS = [
+#     'localhost',
+#     '127.0.0.1',
+#     '.onrender.com',  # Allows all Render subdomains
+#     'my-portfolio-h1tt.onrender.com',  # Your exact URL
+# ]
+ALLOWED_HOSTS = ['*']  # Temporary for testing, change to specific later
 
 # Application definition
 
@@ -120,6 +120,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://my-portfolio-h1tt.onrender.com',
+    'https://*.onrender.com',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -138,5 +142,6 @@ AUTH_USER_MODEL = 'core.CustomUser'
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'core/static')]
 DEFAULT_AUTO_FIELD = 'django_mongodb_backend.fields.ObjectIdAutoField'
