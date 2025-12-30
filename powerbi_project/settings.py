@@ -26,13 +26,13 @@ SECRET_KEY = 'django-insecure-3847u+gzb$o@b&pj@=i4n%yb!bf%ik+)v%!ayr0^f6pw0+*r^m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-# ALLOWED_HOSTS = [
-#     'localhost',
-#     '127.0.0.1',
-#     '.onrender.com',  # Allows all Render subdomains
-#     'my-portfolio-h1tt.onrender.com',  # Your exact URL
-# ]
-ALLOWED_HOSTS = ['*']  # Temporary for testing, change to specific later
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'my-portfolio-h1tt.onrender.com',
+    '.onrender.com',
+]
+# ALLOWED_HOSTS = ['*']  # Temporary for testing, change to specific later
 
 # Application definition
 
