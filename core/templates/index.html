@@ -1632,41 +1632,33 @@ function login() {
     return;
   }
 
-  fetch('/api/login/', {
-    method: 'POST',
+  fetch("/api/login/", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCSRFToken()
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ username, password })
+    credentials: "include",   // 🔥 THIS FIXES EVERYTHING
+    body: JSON.stringify({
+      username: username,
+      password: password
+    })
   })
-  .then(response => response.json())
+  .then(res => res.json())
   .then(data => {
     if (data.message) {
-      // Hide login overlay
-      document.getElementById("loginBox").style.display = "none";
-
-      if (data.redirect === "admin") {
-        // Show Admin Panel
-        document.getElementById("adminPanel").style.display = "block";
-        loadAdminPanel();  // Call your existing function to load users/logs
+      if (data.role === "admin") {
+        window.location.href = "/admin/";
       } else {
-        // Show User Dashboard
-        document.getElementById("dashboardMenu").style.display = "block";
-        document.getElementById("countDisplay").textContent = users.length;  // or fetch real count
-        document.getElementById("backToAdminBtn").style.display = "none";
+        window.location.href = "/dashboard/";
       }
     } else {
-      errorEl.textContent = data.error || "Invalid username or password";
-      errorEl.style.display = "block";
+      showError(data.error || "Login failed");
     }
   })
   .catch(err => {
     console.error(err);
-    errorEl.textContent = "Connection error. Please try again.";
-    errorEl.style.display = "block";
+    showError("Connection error. Please try again.");
   });
-}
 
 function openReport(num) {
   let url = "";
