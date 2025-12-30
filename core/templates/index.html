@@ -787,7 +787,9 @@ h2 {
 </head>
 
 <body>
-
+<div style="display:none;">
+  {% csrf_token %}
+</div>
 <!-- LOGIN / SIGNUP -->
 <div class="overlay" id="loginBox">
   <div class="login-card">
@@ -1482,6 +1484,13 @@ function signup() {
 }
 
 function getCSRFToken() {
+  // First try to get from hidden input (if {% csrf_token %} is in form)
+  const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+  if (csrfInput) {
+    return csrfInput.value;
+  }
+
+  // Fallback: try to get from cookie
   const name = 'csrftoken';
   const cookies = document.cookie.split(';');
   for (let cookie of cookies) {
