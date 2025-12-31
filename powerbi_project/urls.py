@@ -10,6 +10,7 @@ from core.views import (
     get_users,
     get_activity_logs,
     reset_user_password,
+    setup_database,  # ← ADD THIS
 )
 
 urlpatterns = [
@@ -28,4 +29,7 @@ urlpatterns = [
     path('api/admin/logs/', get_activity_logs, name='api_admin_logs'),
     path('api/admin/reset-password/', reset_user_password, name='api_reset_password'),
     path('api/admin/delete-user/', delete_user, name='api_delete_user'),
+
+    # Temporary setup URL - REMOVE AFTER FIRST USE
+    path('setup-db/', setup_database, name='setup_db'),
 ]

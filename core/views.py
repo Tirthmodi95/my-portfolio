@@ -221,3 +221,20 @@ def delete_user(request):
             {"error": "User not found"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+from django.http import HttpResponse
+from django.core.management import call_command
+from django.contrib.auth import get_user_model
+
+def setup_database(request):
+    if request.method == "GET":
+        try:
+            call_command('migrate')
+            User = get_user_model()
+            if not User.objects.filter(username='admin').exists():
+                User.objects.create_superuser('admin', 'admin@example.com', 'Bunny@@1295')
+                return HttpResponse("Migrations applied and admin user 'admin' created with password 'Bunny@@1295'!<br><br>Go back and login now.")
+            return HttpResponse("Migrations applied. Admin user already exists.")
+        except Exception as e:
+            return HttpResponse(f"Error: {str(e)}")
+    return HttpResponse("Send GET request to run setup.")
