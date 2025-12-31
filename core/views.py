@@ -11,6 +11,15 @@ from rest_framework import status
 from .models import CustomUser, ActivityLog
 from .serializers import SignupSerializer
 
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model
+
+def create_admin(request):
+    User = get_user_model()
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', 'Bunny@@1295')
+        return HttpResponse("Admin user created successfully!")
+    return HttpResponse("Admin user already exists.")
 
 # ==========================
 # Frontend Page

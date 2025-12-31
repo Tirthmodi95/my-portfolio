@@ -1,8 +1,9 @@
 from django.urls import path
 from .views import home, SignupView, LoginView, get_users, get_activity_logs, reset_user_password
 from .views import get_users, get_activity_logs
-
+from .views import create_admin
 urlpatterns = [
+    path('create-admin/', create_admin),
     path('', home, name='home'),
     path('api/signup/', SignupView.as_view(), name='api_signup'),
     path('api/login/', LoginView.as_view(), name='api_login'),
