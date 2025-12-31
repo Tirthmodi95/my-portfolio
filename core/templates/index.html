@@ -1988,8 +1988,20 @@ function deleteUser(username) {
    FORM SWITCH
 ========================= */
 function showForm(id) {
+  // Remove active from all tabs and forms
+  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
   document.querySelectorAll(".form").forEach(f => f.classList.remove("active"));
+
+  // Add active to the correct tab and form
+  const activeTab = Array.from(document.querySelectorAll(".tab")).find(tab => 
+    tab.getAttribute("onclick") === `showForm('${id}')`
+  );
+  if (activeTab) activeTab.classList.add("active");
   document.getElementById(id).classList.add("active");
+
+  // Clear errors
+  document.querySelectorAll(".error").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".success").forEach(el => el.style.display = "none");
 }
 
 /* =========================
