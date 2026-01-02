@@ -3,15 +3,14 @@ set -o errexit
 
 pip install -r requirements.txt
 
-python manage.py collectstatic --noinput
+# Always collect static files
+python manage.py collectstatic --noinput --clear
 
-# Explicitly create migrations for core with verbosity
-echo "Creating migrations for core..."
-python manage.py makemigrations core --verbosity 2
+# Create migrations if needed
+python manage.py makemigrations core --noinput
 
 # Apply migrations
-echo "Applying migrations..."
-python manage.py migrate --noinput --verbosity 2
+python manage.py migrate --noinput
 
 # Create admin user
 echo "from django.contrib.auth import get_user_model
