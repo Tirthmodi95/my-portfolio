@@ -12,6 +12,7 @@ from .models import CustomUser, ActivityLog
 from .serializers import SignupSerializer
 
 from django.http import HttpResponse
+from django.core.management import call_command
 from django.contrib.auth import get_user_model
 
 def create_admin(request):
@@ -229,12 +230,17 @@ from django.contrib.auth import get_user_model
 def setup_database(request):
     if request.method == "GET":
         try:
-            call_command('migrate')
+            # First create migrations for core
+            call_command('makemigrations', 'core', verbosity=0)
+
+            # Then apply migrations
+            call_command('migrate', verbosity=0)
+
             User = get_user_model()
             if not User.objects.filter(username='admin').exists():
                 User.objects.create_superuser('admin', 'admin@example.com', 'Bunny@@1295')
-                return HttpResponse("Migrations applied and admin user 'admin' created with password 'Bunny@@1295'!<br><br>Go back and login now.")
-            return HttpResponse("Migrations applied. Admin user already exists.")
+                return HttpResponse("<h2>SUCCESS!</h2>Migrations applied and admin user created.<br><br>Go to <a href='/'>login page</a> and use:<br><b>Username: admin</b><br><b>Password: Bunny@@1295</b>")
+            return HttpResponse("<h2>Success!</h2>Migrations applied. Admin user already exists.<br><br><a href='/'>Go to login</a>")
         except Exception as e:
-            return HttpResponse(f"Error: {str(e)}")
-    return HttpResponse("Send GET request to run setup.")
+            return HttpResponse(f"<h2>Error:</h2> {str(e)}<br><br>Check Render logs for details.")
+    return HttpResponse("Visit this URL once to setup the database.")
