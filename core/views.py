@@ -27,7 +27,19 @@ def create_admin(request):
 # ==========================
 @ensure_csrf_cookie
 def home(request):
-    return render(request, "index.html")
+    try:
+        # Safe default values
+        total_users = CustomUser.objects.count() if CustomUser.objects.exists() else 0
+        recent_logs = ActivityLog.objects.order_by('-timestamp')[:5] if ActivityLog.objects.exists() else []
+    except Exception:
+        total_users = 0
+        recent_logs = []
+
+    context = {
+        'total_users': total_users,
+        'recent_logs': recent_logs,
+    }
+    return render(request, "index.html", context)
 
 
 # ==========================
