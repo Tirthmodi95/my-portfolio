@@ -5,11 +5,13 @@ pip install -r requirements.txt
 
 python manage.py collectstatic --noinput
 
-# Create fresh migrations for core app
-python manage.py makemigrations core --noinput
+# Explicitly create migrations for core with verbosity
+echo "Creating migrations for core..."
+python manage.py makemigrations core --verbosity 2
 
 # Apply migrations
-python manage.py migrate --noinput
+echo "Applying migrations..."
+python manage.py migrate --noinput --verbosity 2
 
 # Create admin user
 echo "from django.contrib.auth import get_user_model
