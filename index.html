@@ -8,18 +8,156 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+/* =============== ROOT VARIABLES & SMOOTH ANIMATIONS =============== */
+:root {
+  --bg-primary: url("https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=1920");
+  --bg-secondary: url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1920");
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-accent: #f2c811;
+  --text-light: #a0d8ff;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-shadow: 0 25px 50px rgba(0,0,0,0.4);
+  --input-bg: #ffffff;
+  --input-border: #ccc;
+  --input-text: #333;
+  --button-primary: #f2c811;
+  --button-primary-hover: #e0b600;
+  --table-header: rgba(0,0,0,0.05);
+  --table-hover: rgba(0,0,0,0.08);
+  --panel-overlay: rgba(255,255,255,0.1);
+  --alert-bg: rgba(255,0,0,0.2);
+  --alert-text: #ffcccc;
+  --transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode */
+body.dark-mode {
+  --bg-primary: #0a1f3d;
+  --bg-secondary: #0f1629;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
+  --text-accent: #f2c811;
+  --text-light: #a0d8ff;
+  --card-bg: rgba(20, 30, 50, 0.95);
+  --card-shadow: 0 25px 50px rgba(0,0,0,0.7);
+  --input-bg: rgba(40, 50, 80, 0.9);
+  --input-border: #555;
+  --input-text: #e0e0e0;
+  --button-primary: #f2c811;
+  --button-primary-hover: #e0b600;
+  --table-header: rgba(255,255,255,0.1);
+  --table-hover: rgba(255,255,255,0.08);
+  --panel-overlay: rgba(0,0,0,0.4);
+  --alert-bg: rgba(100,0,0,0.4);
+  --alert-text: #ff9999;
+}
+
+/* Global smooth transitions */
 * {
   box-sizing: border-box;
   font-family: "Segoe UI", Arial, sans-serif;
+  transition: var(--transition);
 }
 
 body {
   margin: 0;
   height: 100vh;
-  background: url("background.jpg") no-repeat center/cover;
+  background: var(--bg-primary) no-repeat center/cover;
+  color: var(--text-primary);
 }
 
-/* OVERLAY */
+/* =============== DARK MODE TOGGLE =============== */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(12px);
+  border-radius: 50px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.theme-toggle label {
+  cursor: pointer;
+  font-size: 22px;
+  user-select: none;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(145deg, #444, #333);
+  border-radius: 34px;
+  box-shadow: inset 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+input:checked + .slider {
+  background: linear-gradient(145deg, #f2c811, #d4a017);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.slider .icon {
+  position: absolute;
+  font-size: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.slider .sun {
+  left: 10px;
+  color: #ffd700;
+}
+
+.slider .moon {
+  right: 10px;
+  color: #666;
+}
+
+input:checked + .slider .sun {
+  color: #333;
+}
+
+input:checked + .slider .moon {
+  color: #fff;
+}
+
+/* =============== GENERAL STYLES =============== */
 .overlay {
   position: fixed;
   inset: 0;
@@ -29,13 +167,12 @@ body {
   align-items: center;
 }
 
-/* LOGIN CARD */
 .login-card {
   width: 380px;
   padding: 30px;
   border-radius: 14px;
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
   animation: fadeIn 1s ease;
 }
 
@@ -56,14 +193,17 @@ body {
 h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #333;
+  color: var(--text-accent);
 }
 
-/* TABS */
 .tabs {
   display: flex;
   margin-bottom: 20px;
   border-bottom: 2px solid #ddd;
+}
+
+body.dark-mode .tabs {
+  border-bottom: 2px solid #444;
 }
 
 .tab {
@@ -72,20 +212,18 @@ h2 {
   text-align: center;
   cursor: pointer;
   font-weight: bold;
-  color: #666;
-  transition: all 0.3s;
+  color: var(--text-secondary);
 }
 
 .tab.active {
-  color: #f2c811;
-  border-bottom: 3px solid #f2c811;
+  color: var(--text-accent);
+  border-bottom: 3px solid var(--text-accent);
 }
 
 .tab:hover {
-  color: #f2c811;
+  color: var(--text-accent);
 }
 
-/* FORMS */
 .form-container {
   position: relative;
 }
@@ -107,14 +245,16 @@ h2 {
   font-size: 14px;
   display: block;
   margin-bottom: 5px;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .input-group input {
   width: 100%;
   padding: 10px 40px 10px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
   font-size: 15px;
 }
 
@@ -126,11 +266,11 @@ h2 {
   border: none;
   cursor: pointer;
   font-size: 18px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .password-toggle:hover {
-  color: #333;
+  color: var(--text-accent);
 }
 
 .login-btn, .signup-btn, .reset-btn {
@@ -145,12 +285,12 @@ h2 {
 }
 
 .login-btn {
-  background: #f2c811;
+  background: var(--button-primary);
   color: black;
 }
 
 .login-btn:hover {
-  background: #e0b600;
+  background: var(--button-primary-hover);
 }
 
 .signup-btn {
@@ -172,7 +312,7 @@ h2 {
 }
 
 .error {
-  color: red;
+  color: #e74c3c;
   text-align: center;
   display: none;
   margin-top: 10px;
@@ -180,7 +320,7 @@ h2 {
 }
 
 .success {
-  color: green;
+  color: #2ecc71;
   text-align: center;
   margin-top: 10px;
   font-size: 14px;
@@ -201,29 +341,32 @@ h2 {
   text-decoration: underline;
 }
 
-/* ADMIN PANEL */
-.admin-panel {
+/* =============== ADMIN & DASHBOARD PANELS =============== */
+.admin-panel,
+.dashboard-menu {
   display: none;
   width: 100%;
   height: 100vh;
-  background: url("background2.jpg") no-repeat center/cover;
-  color: white;
+  background: var(--bg-secondary) no-repeat center/cover;
+  color: var(--text-primary);
   text-align: center;
   padding: 40px 20px;
   overflow-y: auto;
 }
 
-.admin-panel h1 {
+.admin-panel h1,
+.dashboard-menu h1 {
   font-size: 36px;
-  color: #f2c811;
+  color: var(--text-accent);
   margin-bottom: 20px;
 }
 
-.admin-stats {
+.admin-stats,
+.user-count {
   font-size: 24px;
   margin: 30px 0;
-  color: #a0d8ff;
-  background: rgba(255,255,255,0.1);
+  color: var(--text-light);
+  background: var(--panel-overlay);
   padding: 20px;
   border-radius: 12px;
   max-width: 600px;
@@ -232,21 +375,28 @@ h2 {
   backdrop-filter: blur(8px);
 }
 
-.users-table {
+.users-table,
+.activity-logs,
+.log-analytics,
+.real-time-alerts {
   max-width: 1100px;
   margin: 40px auto;
-  background: rgba(255,255,255,0.1);
+  background: var(--panel-overlay);
   border-radius: 12px;
   padding: 20px;
   backdrop-filter: blur(10px);
 }
 
-.users-table h2 {
-  color: #a0d8ff;
+.users-table h2,
+.activity-logs h2,
+.log-analytics h2,
+.real-time-alerts h2 {
+  color: var(--text-light);
   margin-bottom: 20px;
 }
 
-.users-table input#userSearch {
+.users-table input#userSearch,
+.activity-logs input#logSearch {
   width: 100%;
   padding: 12px;
   margin-bottom: 20px;
@@ -257,29 +407,39 @@ h2 {
   font-size: 16px;
 }
 
-.users-table input#userSearch::placeholder {
+.users-table input#userSearch::placeholder,
+.activity-logs input#logSearch::placeholder {
   color: #a0d8ff;
 }
 
-.users-table table {
+body.dark-mode input#userSearch,
+body.dark-mode input#logSearch {
+  background: rgba(255,255,255,0.1);
+}
+
+.users-table table,
+.activity-logs table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.users-table th, .users-table td {
+.users-table th, .users-table td,
+.activity-logs th, .activity-logs td {
   padding: 14px;
   text-align: left;
   border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
-.users-table th {
-  background: rgba(255,255,255,0.2);
+.users-table th,
+.activity-logs th {
+  background: var(--table-header);
   font-weight: bold;
   font-size: 18px;
 }
 
-.users-table tr:hover {
-  background: rgba(255,255,255,0.15);
+.users-table tr:hover,
+.activity-logs tr:hover {
+  background: var(--table-hover);
 }
 
 .password-cell {
@@ -289,9 +449,6 @@ h2 {
 .obfuscated {
   filter: blur(4px);
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   pointer-events: none;
 }
 
@@ -305,7 +462,7 @@ h2 {
 }
 
 .reveal-btn:hover {
-  color: #f2c811;
+  color: var(--text-accent);
 }
 
 .delete-btn {
@@ -320,6 +477,79 @@ h2 {
 
 .delete-btn:hover {
   background: #c0392b;
+}
+
+.export-btn {
+  background: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.export-btn:hover {
+  background: #27ae60;
+}
+
+.log-analytics canvas {
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+.real-time-alerts ul {
+  list-style: none;
+  padding: 0;
+}
+
+.real-time-alerts li {
+  background: var(--alert-bg);
+  color: var(--alert-text);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  position: relative;
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.real-time-alerts li .close-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#adminResetForm {
+  max-width: 600px;
+  margin: 40px auto;
+  background: var(--panel-overlay);
+  border-radius: 12px;
+  padding: 30px;
+  backdrop-filter: blur(10px);
+  display: none;
+}
+
+#adminResetForm h3 {
+  color: var(--text-light);
+  margin-bottom: 25px;
+  font-size: 24px;
+}
+
+#adminResetForm .input-group input[type="password"] {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
 }
 
 .admin-actions {
@@ -341,214 +571,7 @@ h2 {
   background: #106ebe;
 }
 
-/* ADMIN PASSWORD RESET FORM */
-#adminResetForm {
-  max-width: 600px;
-  margin: 40px auto;
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 30px;
-  backdrop-filter: blur(10px);
-  display: none;
-}
-
-#adminResetForm h3 {
-  color: #a0d8ff;
-  margin-bottom: 25px;
-  font-size: 24px;
-}
-
-#adminResetForm .input-group input[type="password"] {
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: white;
-  padding-right: 45px;
-}
-
-#adminResetForm .password-toggle {
-  color: #a0d8ff;
-  top: 35px;
-}
-
-#adminResetForm button {
-  background: #f2c811;
-  color: black;
-  font-weight: bold;
-}
-
-#adminResetForm button:hover {
-  background: #e0b600;
-}
-
-/* ACTIVITY LOGS */
-.activity-logs {
-  max-width: 1100px;
-  margin: 40px auto;
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-}
-
-.activity-logs h2 {
-  color: #a0d8ff;
-  margin-bottom: 20px;
-}
-
-.activity-logs input#logSearch {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  border: none;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  font-size: 16px;
-}
-
-.activity-logs input#logSearch::placeholder {
-  color: #a0d8ff;
-}
-
-.activity-logs table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.activity-logs th, .activity-logs td {
-  padding: 14px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-.activity-logs th {
-  background: rgba(255,255,255,0.2);
-  font-weight: bold;
-  font-size: 18px;
-}
-
-.activity-logs tr:hover {
-  background: rgba(255,255,255,0.15);
-}
-
-.export-btn {
-  background: #2ecc71;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 20px;
-}
-
-.export-btn:hover {
-  background: #27ae60;
-}
-
-/* LOG ANALYTICS */
-.log-analytics {
-  max-width: 1100px;
-  margin: 40px auto;
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-}
-
-.log-analytics h2 {
-  color: #a0d8ff;
-  margin-bottom: 20px;
-}
-
-.log-analytics canvas {
-  background: rgba(255,255,255,0.05);
-  border-radius: 8px;
-}
-
-/* REAL-TIME ALERTS */
-.real-time-alerts {
-  max-width: 1100px;
-  margin: 40px auto;
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-}
-
-.real-time-alerts h2 {
-  color: #a0d8ff;
-  margin-bottom: 20px;
-}
-
-.real-time-alerts ul {
-  list-style: none;
-  padding: 0;
-}
-
-.real-time-alerts li {
-  background: rgba(255,0,0,0.2);
-  color: #ffcccc;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  position: relative;
-  animation: slideIn 0.5s ease;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.real-time-alerts li .close-btn {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  background: none;
-  border: none;
-  color: #ffcccc;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.real-time-alerts li .close-btn:hover {
-  color: #ff0000;
-}
-
-/* DASHBOARD MENU */
-.dashboard-menu {
-  display: none;
-  width: 100%;
-  height: 100vh;
-  background: url("background2.jpg") no-repeat center/cover;
-  color: white;
-  text-align: center;
-  padding: 40px 20px;
-  overflow-y: auto;
-  position: relative;
-}
-
-.dashboard-menu h1 {
-  margin-bottom: 50px;
-  font-size: 32px;
-  color: #a0d8ff;
-}
-
-.user-count {
-  text-align: center;
-  margin: 20px 0 40px;
-  font-size: 20px;
-  color: #a0d8ff;
-  background: rgba(255,255,255,0.1);
-  padding: 15px;
-  border-radius: 12px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  backdrop-filter: blur(5px);
-}
-
+/* =============== REPORT LIST =============== */
 .report-list {
   max-width: 600px;
   margin: 0 auto;
@@ -566,6 +589,10 @@ h2 {
   transition: transform 0.2s;
 }
 
+body.dark-mode .report-item {
+  background: rgba(0,0,0,0.3);
+}
+
 .report-item:hover {
   transform: translateY(-5px);
 }
@@ -579,7 +606,6 @@ h2 {
 
 .report-item .title::before {
   content: "";
-  display: inline-block;
   width: 35px;
   height: 35px;
   background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/cf/New_Power_BI_Logo.svg");
@@ -614,7 +640,6 @@ h2 {
   cursor: pointer;
 }
 
-/* BACK TO ADMIN BUTTON */
 .back-to-admin {
   position: fixed;
   top: 20px;
@@ -628,7 +653,6 @@ h2 {
   font-size: 16px;
   cursor: pointer;
   display: none;
-  transition: background 0.3s;
 }
 
 .back-to-admin:hover {
@@ -640,7 +664,7 @@ h2 {
   font-weight: bold;
 }
 
-/* FOOTER */
+/* =============== FOOTER =============== */
 .footer {
   margin-top: 80px;
   padding: 20px;
@@ -668,7 +692,7 @@ h2 {
 .cv-section h3 {
   margin-bottom: 20px;
   font-size: 22px;
-  color: #a0d8ff;
+  color: var(--text-light);
 }
 
 .cv-buttons {
@@ -691,7 +715,7 @@ h2 {
   background: #106ebe;
 }
 
-/* FULL SCREEN REPORT */
+/* =============== FULL SCREEN REPORT =============== */
 .dashboard {
   display: none;
   height: 100vh;
@@ -763,16 +787,188 @@ h2 {
   font-size: 20px;
   font-weight: 500;
 }
+
+/* =============== RESPONSIVE =============== */
+@media (max-width: 768px) {
+  .login-card {
+    width: 95%;
+    max-width: 380px;
+    padding: 25px 20px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .tab {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .input-group input {
+    padding: 12px 45px 12px 12px;
+    font-size: 16px;
+  }
+
+  .password-toggle {
+    top: 38px;
+    right: 12px;
+    font-size: 20px;
+  }
+
+  .login-btn, .signup-btn, .reset-btn {
+    padding: 14px;
+    font-size: 17px;
+  }
+
+  .admin-panel h1,
+  .dashboard-menu h1 {
+    font-size: 28px;
+    margin-top: 20px;
+  }
+
+  .admin-stats,
+  .user-count {
+    font-size: 18px;
+    padding: 15px;
+  }
+
+  .users-table,
+  .activity-logs,
+  .log-analytics,
+  .real-time-alerts {
+    padding: 15px;
+    margin: 20px auto;
+  }
+
+  .users-table table,
+  .activity-logs table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .users-table th, .users-table td,
+  .activity-logs th, .activity-logs td {
+    min-width: 100px;
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+  .delete-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .reveal-btn {
+    font-size: 13px;
+  }
+
+  .report-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .report-item .title {
+    margin-bottom: 15px;
+    font-size: 18px;
+  }
+
+  .report-item button {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .social-links img {
+    height: 40px;
+  }
+
+  .cv-buttons {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 0 20px;
+  }
+
+  .admin-actions button {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .theme-toggle {
+    top: 15px;
+    right: 15px;
+    padding: 8px 12px;
+  }
+
+  .toggle-switch {
+    width: 50px;
+    height: 28px;
+  }
+
+  .slider:before {
+    width: 20px;
+    height: 20px;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 20px 15px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  .tab {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .report-item .title::before {
+    width: 30px;
+    height: 30px;
+  }
+
+  .logout-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+}
 </style>
 </head>
 
 <body>
 
+<!-- Dark Mode Toggle -->
+<div class="theme-toggle">
+
+  <label class="toggle-switch">
+    <input type="checkbox" id="darkModeToggle">
+    <span class="slider">
+      <span class="icon sun">☀️</span>
+      <span class="icon moon">🌙</span>
+    </span>
+  </label>
+
+</div>
+
 <!-- LOGIN / SIGNUP -->
 <div class="overlay" id="loginBox">
   <div class="login-card">
     <div class="logo">
-      <img src="powerbi-logo.png" alt="Power BI">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/cf/New_Power_BI_Logo.svg" alt="Power BI">
     </div>
 
     <h2>Power BI Portal</h2>
@@ -900,7 +1096,6 @@ h2 {
     </table>
   </div>
 
-  <!-- User Activity Logs -->
   <div class="activity-logs">
     <h2>User Activity Logs</h2>
     <input type="text" id="logSearch" placeholder="Search by username or action..." oninput="filterLogs()">
@@ -917,19 +1112,16 @@ h2 {
     </table>
   </div>
 
-  <!-- Log Analytics Dashboard -->
   <div class="log-analytics">
     <h2>Log Analytics Dashboard</h2>
     <canvas id="logChart" width="400" height="200"></canvas>
   </div>
 
-  <!-- Real-Time Alerts -->
   <div class="real-time-alerts">
     <h2>Real-Time Critical Alerts</h2>
     <ul id="alertList"></ul>
   </div>
 
-  <!-- Admin Password Reset Form -->
   <div id="adminResetForm">
     <h3>Change Admin Password</h3>
     <div class="input-group">
@@ -988,7 +1180,7 @@ h2 {
       <button onclick="openReport(4)">Open Report</button>
     </div>
     <div class="report-item">
-      <div class="title">Net Promoter Score Dashbord</div>
+      <div class="title">Net Promoter Score Dashboard</div>
       <button onclick="openReport(5)">Open Report</button>
     </div>
   </div>
@@ -1017,7 +1209,6 @@ h2 {
 
   <button class="logout-btn" onclick="logout()">Logout</button>
 
-  <!-- Back to Admin Panel button -->
   <button class="back-to-admin" id="backToAdminBtn" onclick="backToAdmin()">Back to Admin Panel</button>
 </div>
 
@@ -1028,7 +1219,7 @@ h2 {
     <div class="loader-text" id="loaderText">Loading Report...</div>
   </div>
 
-  <iframe id="reportFrame" src="" allowFullScreen style="width:100%; height:100vh; border:none;" onload="hideLoader()"></iframe>
+  <iframe id="reportFrame" src="" allowFullScreen></iframe>
 
   <button class="back-btn" id="backBtn" onclick="backToMenu()">Back</button>
 </div>
@@ -1047,119 +1238,102 @@ function togglePassword(inputId) {
   }
 }
 
-// Load users from localStorage
+// Load data from localStorage
 let users = JSON.parse(localStorage.getItem("powerbi_users")) || [];
-
-// Load activity logs
 let activityLogs = JSON.parse(localStorage.getItem("powerbi_activity_logs")) || [];
-
-// Admin password
 let adminPassword = localStorage.getItem("admin_password") || "1234";
-
-// Last known log count for real-time detection
 let lastLogCount = activityLogs.length;
 
-// Log user activity
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById("darkModeToggle");
+const body = document.body;
+
+if (localStorage.getItem("darkMode") === "enabled") {
+  body.classList.add("dark-mode");
+  darkModeToggle.checked = true;
+}
+
+darkModeToggle.addEventListener("change", () => {
+  if (darkModeToggle.checked) {
+    body.classList.add("dark-mode");
+    localStorage.setItem("darkMode", "enabled");
+  } else {
+    body.classList.remove("dark-mode");
+    localStorage.setItem("darkMode", "disabled");
+  }
+});
+
+// Log activity
 function logActivity(username, action) {
-  const log = {
-    username,
-    action,
-    timestamp: new Date().toISOString()
-  };
+  const log = { username, action, timestamp: new Date().toISOString() };
   activityLogs.push(log);
   localStorage.setItem("powerbi_activity_logs", JSON.stringify(activityLogs));
 }
 
-// Format date
+// Format dates
 function formatDate(dateString) {
   if (!dateString) return "Invalid Date";
   const d = new Date(dateString);
-  if (isNaN(d.getTime())) return "Invalid Date";
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
-         ' at ' + 
-         d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+         ' at ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Format timestamp for logs
 function formatTimestamp(dateString) {
-  const d = new Date(dateString);
-  return d.toLocaleString();
+  return new Date(dateString).toLocaleString();
 }
 
-// Populate Admin Panel
+// Admin Panel Load
 function loadAdminPanel() {
   document.getElementById("adminUserCount").textContent = users.length;
 
   const tbody = document.getElementById("usersTableBody");
-  tbody.innerHTML = "";
-
-  if (users.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#a0d8ff;">No users registered yet.</td></tr>`;
-  } else {
-    users.forEach((user, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${user.username}</td>
-        <td>${user.email}</td>
-        <td>${user.mobile}</td>
-        <td class="password-cell">
-          <span class="obfuscated">••••••••</span>
-          <button class="reveal-btn" onclick="revealPassword(this)">Reveal</button>
-        </td>
-        <td>${formatDate(user.signupDate)}</td>
-        <td><button class="delete-btn" onclick="deleteUser(${index})">Delete</button></td>
-      `;
-      row.dataset.password = user.password;
-      tbody.appendChild(row);
-    });
-  }
-
+  tbody.innerHTML = users.length === 0 
+    ? `<tr><td colspan="6" style="text-align:center; padding:20px; color:#a0d8ff;">No users registered yet.</td></tr>`
+    : users.map((user, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${user.username}</td>
+          <td>${user.email}</td>
+          <td>${user.mobile}</td>
+          <td class="password-cell">
+            <span class="obfuscated">••••••••</span>
+            <button class="reveal-btn" onclick="revealPassword(this)">Reveal</button>
+          </td>
+          <td>${formatDate(user.signupDate)}</td>
+          <td><button class="delete-btn" onclick="deleteUser(${i})">Delete</button></td>
+        `;
+        row.dataset.password = user.password;
+        return row.outerHTML;
+      }).join("");
+  
   filterUsers();
 
-  // Load activity logs
   const logsTbody = document.getElementById("activityLogsBody");
-  logsTbody.innerHTML = "";
-
-  if (activityLogs.length === 0) {
-    logsTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:20px; color:#a0d8ff;">No activity logs yet.</td></tr>`;
-  } else {
-    activityLogs.forEach(log => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${log.username}</td>
-        <td>${log.action}</td>
-        <td>${formatTimestamp(log.timestamp)}</td>
-      `;
-      logsTbody.appendChild(row);
-    });
-  }
+  logsTbody.innerHTML = activityLogs.length === 0 
+    ? `<tr><td colspan="3" style="text-align:center; padding:20px; color:#a0d8ff;">No activity logs yet.</td></tr>`
+    : activityLogs.map(log => `
+        <tr>
+          <td>${log.username}</td>
+          <td>${log.action}</td>
+          <td>${formatTimestamp(log.timestamp)}</td>
+        </tr>
+      `).join("");
 
   filterLogs();
-
-  // Render analytics chart
   renderLogChart();
-
-  // Clear old alerts
   document.getElementById("alertList").innerHTML = "";
-
-  // Start real-time polling
   startAlertPolling();
 }
 
-// Stop polling
 function stopAlertPolling() {
-  if (window.alertInterval) {
-    clearInterval(window.alertInterval);
-  }
+  if (window.alertInterval) clearInterval(window.alertInterval);
 }
 
-// Start real-time polling (every 5 seconds)
 function startAlertPolling() {
   stopAlertPolling();
   window.alertInterval = setInterval(() => {
     const newLogs = activityLogs.slice(lastLogCount);
     lastLogCount = activityLogs.length;
-
     newLogs.forEach(log => {
       if (log.action.includes("Deleted") || log.action.includes("Changed") || log.action.includes("Reset")) {
         addAlert(`Critical: ${log.action} by ${log.username} at ${formatTimestamp(log.timestamp)}`);
@@ -1168,21 +1342,14 @@ function startAlertPolling() {
   }, 5000);
 }
 
-// Add real-time alert
 function addAlert(message) {
-  const list = document.getElementById("alertList");
   const li = document.createElement("li");
-  li.innerHTML = `
-    <span>${message}</span>
-    <button class="close-btn" onclick="this.parentNode.remove()">×</button>
-  `;
-  list.prepend(li);
+  li.innerHTML = `<span>${message}</span><button class="close-btn" onclick="this.parentNode.remove()">×</button>`;
+  document.getElementById("alertList").prepend(li);
 }
 
-// Render Log Analytics Chart
 function renderLogChart() {
   const ctx = document.getElementById("logChart").getContext("2d");
-
   const actionsPerDay = {};
   activityLogs.forEach(log => {
     const date = new Date(log.timestamp).toLocaleDateString();
@@ -1190,19 +1357,17 @@ function renderLogChart() {
   });
 
   const labels = Object.keys(actionsPerDay).sort();
-  const data = labels.map(date => actionsPerDay[date]);
+  const data = labels.map(d => actionsPerDay[d]);
 
-  if (window.logChartInstance) {
-    window.logChartInstance.destroy();
-  }
+  if (window.logChartInstance) window.logChartInstance.destroy();
 
   window.logChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: 'Daily Activity Count',
-        data: data,
+        data,
         borderColor: '#f2c811',
         backgroundColor: 'rgba(242, 200, 17, 0.2)',
         fill: true,
@@ -1211,180 +1376,121 @@ function renderLogChart() {
     },
     options: {
       responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
+      scales: { y: { beginAtZero: true } }
     }
   });
 }
 
-// Reveal password
-function revealPassword(button) {
-  const cell = button.parentNode;
-  const obfuscated = cell.querySelector('.obfuscated');
-  if (obfuscated.style.filter === 'blur(0px)') {
-    obfuscated.style.filter = 'blur(4px)';
-    obfuscated.textContent = '••••••••';
-    button.textContent = 'Reveal';
-    return;
+function revealPassword(btn) {
+  const cell = btn.parentNode;
+  const span = cell.querySelector('.obfuscated');
+  if (span.style.filter === 'blur(0px)') {
+    span.style.filter = 'blur(4px)';
+    span.textContent = '••••••••';
+    btn.textContent = 'Reveal';
+  } else {
+    span.style.filter = 'blur(0px)';
+    span.textContent = cell.parentNode.dataset.password;
+    btn.textContent = 'Hide';
+    setTimeout(() => {
+      if (btn.textContent === 'Hide') {
+        span.style.filter = 'blur(4px)';
+        span.textContent = '••••••••';
+        btn.textContent = 'Reveal';
+      }
+    }, 5000);
   }
-
-  obfuscated.style.filter = 'blur(0px)';
-  obfuscated.textContent = cell.parentNode.dataset.password;
-  button.textContent = 'Hide';
-
-  setTimeout(() => {
-    if (button.textContent === 'Hide') {
-      obfuscated.style.filter = 'blur(4px)';
-      obfuscated.textContent = '••••••••';
-      button.textContent = 'Reveal';
-    }
-  }, 5000);
 }
 
-// Filter users
 function filterUsers() {
   const search = document.getElementById("userSearch").value.toLowerCase();
-  const rows = document.getElementById("usersTableBody").rows;
-
-  for (let i = 0; i < rows.length; i++) {
-    const username = rows[i].cells[0].textContent.toLowerCase();
-    const email = rows[i].cells[1].textContent.toLowerCase();
-    const mobile = rows[i].cells[2].textContent.toLowerCase();
-
-    if (username.includes(search) || email.includes(search) || mobile.includes(search)) {
-      rows[i].style.display = "";
-    } else {
-      rows[i].style.display = "none";
-    }
-  }
+  document.querySelectorAll("#usersTableBody tr").forEach(row => {
+    const cells = row.cells;
+    row.style.display = (
+      cells[0].textContent.toLowerCase().includes(search) ||
+      cells[1].textContent.toLowerCase().includes(search) ||
+      cells[2].textContent.toLowerCase().includes(search)
+    ) ? "" : "none";
+  });
 }
 
-// Filter logs
 function filterLogs() {
   const search = document.getElementById("logSearch").value.toLowerCase();
-  const rows = document.getElementById("activityLogsBody").rows;
-
-  for (let i = 0; i < rows.length; i++) {
-    const username = rows[i].cells[0].textContent.toLowerCase();
-    const action = rows[i].cells[1].textContent.toLowerCase();
-
-    if (username.includes(search) || action.includes(search)) {
-      rows[i].style.display = "";
-    } else {
-      rows[i].style.display = "none";
-    }
-  }
+  document.querySelectorAll("#activityLogsBody tr").forEach(row => {
+    row.style.display = (
+      row.cells[0].textContent.toLowerCase().includes(search) ||
+      row.cells[1].textContent.toLowerCase().includes(search)
+    ) ? "" : "none";
+  });
 }
 
-// Export logs to CSV
 function exportLogsToCSV() {
-  let csvContent = "Username,Action,Timestamp\n";
-  activityLogs.forEach(log => {
-    csvContent += `${log.username},"${log.action}",${formatTimestamp(log.timestamp)}\n`;
-  });
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  let csv = "Username,Action,Timestamp\n";
+  activityLogs.forEach(log => csv += `${log.username},"${log.action}",${formatTimestamp(log.timestamp)}\n`);
+  const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `activity_logs_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `activity_logs_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
   URL.revokeObjectURL(url);
 }
 
-// Delete user
 function deleteUser(index) {
   if (confirm("Are you sure you want to delete this user?")) {
-    const deletedUser = users[index];
+    const user = users[index];
     users.splice(index, 1);
     localStorage.setItem("powerbi_users", JSON.stringify(users));
-    logActivity("Admin", `Deleted user: ${deletedUser.username}`);
+    logActivity("Admin", `Deleted user: ${user.username}`);
     loadAdminPanel();
   }
 }
 
-// Toggle admin password reset form
 function toggleAdminResetForm() {
   const form = document.getElementById("adminResetForm");
-  form.style.display = (form.style.display === "block") ? "none" : "block";
+  form.style.display = form.style.display === "block" ? "none" : "block";
 }
 
-// Change admin password
+function validatePassword(pass) {
+  if (pass.length < 8) return "Password must be at least 8 characters";
+  if (!/[A-Z]/.test(pass)) return "Password must include at least 1 uppercase letter";
+  if (!/[a-z]/.test(pass)) return "Password must include at least 1 lowercase letter";
+  if (!/\d/.test(pass)) return "Password must include at least 1 number";
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass)) return "Password must include at least 1 special character";
+  return null;
+}
+
 function changeAdminPassword() {
-  const oldPass = document.getElementById("adminOldPassword").value;
-  const newPass = document.getElementById("adminNewPassword").value;
+  const old = document.getElementById("adminOldPassword").value;
+  const newP = document.getElementById("adminNewPassword").value;
   const confirm = document.getElementById("adminConfirmPassword").value;
 
-  const errorEl = document.getElementById("adminResetError");
-  const successEl = document.getElementById("adminResetSuccess");
-  errorEl.style.display = "none";
-  successEl.style.display = "none";
+  const err = document.getElementById("adminResetError");
+  const succ = document.getElementById("adminResetSuccess");
+  err.style.display = succ.style.display = "none";
 
-  if (oldPass !== adminPassword) {
-    errorEl.textContent = "Incorrect old password";
-    errorEl.style.display = "block";
-    return;
-  }
+  if (old !== adminPassword) return err.textContent = "Incorrect old password", err.style.display = "block";
+  const strength = validatePassword(newP);
+  if (strength) return err.textContent = strength, err.style.display = "block";
+  if (newP !== confirm) return err.textContent = "Passwords do not match", err.style.display = "block";
 
-  const strengthError = validatePassword(newPass);
-  if (strengthError) {
-    errorEl.textContent = strengthError;
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (newPass !== confirm) {
-    errorEl.textContent = "Passwords do not match";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  adminPassword = newPass;
-  localStorage.setItem("admin_password", newPass);
+  adminPassword = newP;
+  localStorage.setItem("admin_password", newP);
   logActivity("Admin", "Changed admin password");
-
-  successEl.textContent = "Admin password changed successfully!";
-  successEl.style.display = "block";
-
-  setTimeout(() => {
-    toggleAdminResetForm();
-    successEl.style.display = "none";
-  }, 2000);
-
+  succ.textContent = "Admin password changed successfully!";
+  succ.style.display = "block";
+  setTimeout(() => { toggleAdminResetForm(); succ.style.display = "none"; }, 2000);
   document.getElementById("adminOldPassword").value = "";
   document.getElementById("adminNewPassword").value = "";
   document.getElementById("adminConfirmPassword").value = "";
 }
 
-// Validate password strength
-function validatePassword(pass) {
-  const minLength = 8;
-  const hasUpper = /[A-Z]/.test(pass);
-  const hasLower = /[a-z]/.test(pass);
-  const hasNumber = /\d/.test(pass);
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pass);
-
-  if (pass.length < minLength) return "Password must be at least 8 characters";
-  if (!hasUpper) return "Password must include at least 1 uppercase letter";
-  if (!hasLower) return "Password must include at least 1 lowercase letter";
-  if (!hasNumber) return "Password must include at least 1 number";
-  if (!hasSpecial) return "Password must include at least 1 special character";
-  return null;
-}
-
-function showForm(formId) {
-  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.form').forEach(form => form.classList.remove('active'));
-
-  document.querySelector(`.tab[onclick="showForm('${formId}')"]`).classList.add('active');
-  document.getElementById(formId).classList.add('active');
-
-  document.getElementById('loginError').style.display = 'none';
-  document.getElementById('signupError').style.display = 'none';
-  document.getElementById('signupSuccess').style.display = 'none';
-  document.getElementById('resetError').style.display = 'none';
-  document.getElementById('resetSuccess').style.display = 'none';
+function showForm(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+  document.querySelector(`.tab[onclick="showForm('${id}')"]`).classList.add('active');
+  document.getElementById(id).classList.add('active');
+  ["loginError","signupError","signupSuccess","resetError","resetSuccess"].forEach(e => document.getElementById(e).style.display = "none");
 }
 
 function signup() {
@@ -1394,165 +1500,104 @@ function signup() {
   const pass = document.getElementById("newPassword").value;
   const confirm = document.getElementById("confirmPassword").value;
 
-  const errorEl = document.getElementById("signupError");
-  const successEl = document.getElementById("signupSuccess");
-  errorEl.style.display = "none";
-  successEl.style.display = "none";
+  const err = document.getElementById("signupError");
+  const succ = document.getElementById("signupSuccess");
+  err.style.display = succ.style.display = "none";
 
-  if (!username || !email || !mobile || !pass || !confirm) {
-    errorEl.textContent = "All fields are required";
-    errorEl.style.display = "block";
-    return;
-  }
+  if (!username || !email || !mobile || !pass || !confirm) return err.textContent = "All fields are required", err.style.display = "block";
+  if (users.some(u => u.username === username)) return err.textContent = "Username already exists", err.style.display = "block";
+  if (users.some(u => u.email === email)) return err.textContent = "Email already registered", err.style.display = "block";
+  if (!email.includes('@') || !email.endsWith('.com')) return err.textContent = "Enter valid Gmail address", err.style.display = "block";
+  if (mobile.length !== 10 || !/^\d+$/.test(mobile)) return err.textContent = "Invalid mobile number", err.style.display = "block";
+  const strength = validatePassword(pass);
+  if (strength) return err.textContent = strength, err.style.display = "block";
+  if (pass !== confirm) return err.textContent = "Passwords do not match", err.style.display = "block";
 
-  if (users.some(u => u.username === username)) {
-    errorEl.textContent = "Username already exists";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (users.some(u => u.email === email)) {
-    errorEl.textContent = "Email already registered";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (!email.includes('@') || !email.endsWith('.com')) {
-    errorEl.textContent = "Enter valid Gmail address";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-    errorEl.textContent = "Invalid mobile number";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  const strengthError = validatePassword(pass);
-  if (strengthError) {
-    errorEl.textContent = strengthError;
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (pass !== confirm) {
-    errorEl.textContent = "Passwords do not match";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  const newUser = {
-    username,
-    email,
-    mobile,
-    password: pass,
-    signupDate: new Date().toISOString()
-  };
-  users.push(newUser);
+  users.push({ username, email, mobile, password: pass, signupDate: new Date().toISOString() });
   localStorage.setItem("powerbi_users", JSON.stringify(users));
   logActivity(username, "Signed up");
-
-  successEl.textContent = "Account created successfully!";
-  successEl.style.display = "block";
-
+  succ.textContent = "Account created successfully!";
+  succ.style.display = "block";
   setTimeout(() => {
     document.getElementById("username").value = username;
     showForm('signin');
-    successEl.style.display = "none";
+    succ.style.display = "none";
   }, 1500);
 }
 
 function resetPassword() {
   const username = document.getElementById("resetUsername").value.trim();
   const mobile = document.getElementById("resetMobile").value.trim();
-  const newPass = document.getElementById("resetNewPassword").value;
+  const newP = document.getElementById("resetNewPassword").value;
   const confirm = document.getElementById("resetConfirmPassword").value;
 
-  const errorEl = document.getElementById("resetError");
-  const successEl = document.getElementById("resetSuccess");
-  errorEl.style.display = "none";
-  successEl.style.display = "none";
+  const err = document.getElementById("resetError");
+  const succ = document.getElementById("resetSuccess");
+  err.style.display = succ.style.display = "none";
 
   const user = users.find(u => u.username === username && u.mobile === mobile);
+  if (!user) return err.textContent = "Username or mobile number not found", err.style.display = "block";
+  const strength = validatePassword(newP);
+  if (strength) return err.textContent = strength, err.style.display = "block";
+  if (newP !== confirm) return err.textContent = "Passwords do not match", err.style.display = "block";
 
-  if (!user) {
-    errorEl.textContent = "Username or mobile number not found";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  const strengthError = validatePassword(newPass);
-  if (strengthError) {
-    errorEl.textContent = strengthError;
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (newPass !== confirm) {
-    errorEl.textContent = "Passwords do not match";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  user.password = newPass;
+  user.password = newP;
   localStorage.setItem("powerbi_users", JSON.stringify(users));
   logActivity(username, "Reset password");
-
-  successEl.textContent = "Password reset successfully! Please sign in.";
-  successEl.style.display = "block";
-
+  succ.textContent = "Password reset successfully! Please sign in.";
+  succ.style.display = "block";
   setTimeout(() => {
     document.getElementById("username").value = username;
     showForm('signin');
-    successEl.style.display = "none";
+    succ.style.display = "none";
   }, 1500);
 }
 
 function login() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value;
-
-  const errorEl = document.getElementById("loginError");
-  errorEl.style.display = "none";
-
-  const user = users.find(u => u.username === username && u.password === password);
+  const err = document.getElementById("loginError");
+  err.style.display = "none";
 
   if (username === "admin" && password === adminPassword) {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
     loadAdminPanel();
     logActivity("Admin", "Logged in");
-  } else if (user) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("dashboardMenu").style.display = "block";
-    document.getElementById("countDisplay").textContent = users.length;
-    logActivity(username, "Logged in");
   } else {
-    errorEl.textContent = "Invalid username or password";
-    errorEl.style.display = "block";
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("dashboardMenu").style.display = "block";
+      document.getElementById("countDisplay").textContent = users.length;
+      logActivity(username, "Logged in");
+    } else {
+      err.textContent = "Invalid username or password";
+      err.style.display = "block";
+    }
   }
 }
 
 function openReport(num) {
-  let url = "";
-  let reportName = "Report";
+  const reports = [
+    "", // index 0
+    "https://app.powerbi.com/reportEmbed?reportId=75a289c6-9630-4c93-92b0-25ba8ef59267&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false",
+    "https://app.powerbi.com/reportEmbed?reportId=0840a5d6-3336-4951-a46e-a6bdb09e4cbc&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false",
+    "https://app.powerbi.com/reportEmbed?reportId=64c27251-4a49-40be-bc58-685f53363880&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false",
+    "https://app.powerbi.com/reportEmbed?reportId=06cf562a-3a1f-4b66-bfa0-50f0748d1340&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false",
+    "https://app.powerbi.com/reportEmbed?reportId=8e2c98b9-4f5a-42e8-a64b-ad45820157dd&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false"
+  ];
+  const names = ["", "IPL ANALYSIS", "Pokemon Dashboard", "Stack Overflow Dashboard", "Indian Stock Market & Candle Chart", "Net Promoter Score Dashboard"];
 
-  if (num === 1) { url = "https://app.powerbi.com/reportEmbed?reportId=75a289c6-9630-4c93-92b0-25ba8ef59267&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false"; reportName = "IPL ANALYSIS"; }
-  if (num === 2) { url = "https://app.powerbi.com/reportEmbed?reportId=0840a5d6-3336-4951-a46e-a6bdb09e4cbc&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false"; reportName = "Pokemon Dashboard"; }
-  if (num === 3) { url = "https://app.powerbi.com/reportEmbed?reportId=64c27251-4a49-40be-bc58-685f53363880&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false"; reportName = "Stack Overflow Dashboard"; }
-  if (num === 4) { url = "https://app.powerbi.com/reportEmbed?reportId=06cf562a-3a1f-4b66-bfa0-50f0748d1340&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false"; reportName = "Indian Stock Market & Candle Chart"; }
-  if (num === 5) { url = "https://app.powerbi.com/reportEmbed?reportId=8e2c98b9-4f5a-42e8-a64b-ad45820157dd&autoAuth=true&navContentPaneEnabled=false&filterPaneEnabled=false"; reportName = "Net Promoter Score Dashboard"; }
-
-  document.getElementById("loaderText").textContent = `Loading ${reportName}...`;
+  document.getElementById("loaderText").textContent = `Loading ${names[num]}...`;
   document.getElementById("dashboardMenu").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
   document.getElementById("loader").style.display = "flex";
   document.getElementById("backBtn").style.display = "block";
-  document.getElementById("reportFrame").src = url;
+  document.getElementById("reportFrame").src = reports[num];
 
   const currentUser = document.getElementById("username").value.trim() || "Guest";
-  logActivity(currentUser, `Viewed report: ${reportName}`);
+  logActivity(currentUser, `Viewed report: ${names[num]}`);
 }
 
 function hideLoader() {
@@ -1604,9 +1649,15 @@ function backToAdmin() {
 // Initialize
 window.onload = function() {
   adminPassword = localStorage.getItem("admin_password") || "1234";
+
   if (users.length > 0) {
-    const lastUser = users[users.length - 1];
-    document.getElementById("username").value = lastUser.username;
+    document.getElementById("username").value = users[users.length - 1].username;
+  }
+
+  // Apply saved theme
+  if (localStorage.getItem("darkMode") === "enabled") {
+    document.body.classList.add("dark-mode");
+    document.getElementById("darkModeToggle").checked = true;
   }
 };
 </script>
